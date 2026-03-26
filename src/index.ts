@@ -1,13 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { Horizon } from '@stellar/stellar-sdk';
 import marketRatesRouter from './routes/marketRates';
+import prisma from './lib/prisma';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Horizon server for health checks
+const stellarNetwork = process.env.STELLAR_NETWORK || 'TESTNET';
+const horizonUrl = stellarNetwork === 'PUBLIC'
+  ? 'https://horizon.stellar.org'
+  : 'https://horizon-testnet.stellar.org';
+const horizonServer = new Horizon.Server(horizonUrl);
 
 // Middleware
 app.use(cors());
@@ -17,11 +26,35 @@ app.use(express.json());
 app.use('/api/market-rates', marketRatesRouter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'StellarFlow Backend is running',
-    timestamp: new Date().toISOString()
+app.get('/health', async (req, res) => {
+  const checks: { database: boolean; horizon: boolean } = {
+    database: false,
+    horizon: false,
+  };
+
+  // Check database connectivity
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    checks.database = true;
+  } catch {
+    checks.database = false;
+  }
+
+  // Check Stellar Horizon reachability
+  try {
+    await horizonServer.root();
+    checks.horizon = true;
+  } catch {
+    checks.horizon = false;
+  }
+
+  const healthy = checks.database && checks.horizon;
+
+  res.status(healthy ? 200 : 503).json({
+    success: healthy,
+    message: healthy ? 'All systems operational' : 'One or more services unavailable',
+    timestamp: new Date().toISOString(),
+    checks,
   });
 });
 
