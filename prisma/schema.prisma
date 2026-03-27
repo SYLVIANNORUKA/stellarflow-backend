@@ -113,7 +113,7 @@ model MultiSigPrice {
   @@index([status, expiresAt])
   @@index([priceReviewId])
 
-  signatures        MultiSigSignature[]
+  multiSigSignatures MultiSigSignature[]
 }
 
 // Multi-Sig Signature Model
