@@ -13,8 +13,13 @@ import { getIO } from "../../lib/socket";
 export class MarketRateService {
   private fetchers: Map<string, MarketRateFetcher> = new Map();
   private cache: Map<string, { rate: MarketRate; expiry: Date }> = new Map();
+  private latestPricesCache: {
+    response: AggregatedFetcherResponse;
+    expiry: Date;
+  } | null = null;
   private stellarService: StellarService;
   private readonly CACHE_DURATION_MS = 30000; // 30 seconds
+  private readonly LATEST_PRICES_CACHE_DURATION_MS = 10000; // 10 seconds
 
   constructor() {
     this.stellarService = new StellarService();
@@ -113,6 +118,11 @@ export class MarketRateService {
   }
 
   async getLatestPrices(): Promise<AggregatedFetcherResponse> {
+    const cachedLatestPrices = this.latestPricesCache;
+    if (cachedLatestPrices && cachedLatestPrices.expiry > new Date()) {
+      return cachedLatestPrices.response;
+    }
+
     const results = await this.getAllRates();
 
     const successfulRates = results
@@ -127,16 +137,26 @@ export class MarketRateService {
     const allSuccessful =
       successfulRates.length > 0 && errorMessages.length === 0;
 
-    return {
+    const response = {
       success: allSuccessful,
       data: successfulRates,
       ...(errorMessages.length > 0 && { error: errorMessages[0] }),
       ...(errorMessages.length > 0 && { errors: errorMessages }),
     };
+
+    if (response.success) {
+      this.latestPricesCache = {
+        response,
+        expiry: new Date(Date.now() + this.LATEST_PRICES_CACHE_DURATION_MS),
+      };
+    }
+
+    return response;
   }
 
   clearCache(): void {
     this.cache.clear();
+    this.latestPricesCache = null;
   }
 
   getCacheStatus(): Record<string, { cached: boolean; expiry?: Date }> {
