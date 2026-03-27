@@ -119,7 +119,12 @@ export class NGNRateFetcher implements MarketRateFetcher {
   }
 
   async fetchRate(): Promise<MarketRate> {
-    const prices: { rate: number; timestamp: Date; source: string }[] = [];
+    const prices: {
+      rate: number;
+      timestamp: Date;
+      source: string;
+      trustLevel: SourceTrustLevel;
+    }[] = [];
 
     // Strategy 1: VTpass NGN-per-USD (variation) × CoinGecko XLM/USD
     try {
@@ -148,6 +153,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
             rate: usd * vt.ngnPerUsd,
             timestamp: ts,
             source: "VTpass variation + CoinGecko (XLM/USD)",
+            trustLevel: "new",
           });
         }
       }
@@ -181,6 +187,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
           rate: stellarPrice.ngn,
           timestamp: lastUpdatedAt,
           source: "CoinGecko (direct NGN)",
+          trustLevel: "standard",
         });
       }
     } catch {
@@ -233,6 +240,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
             timestamp:
               fxTimestamp > lastUpdatedAt ? fxTimestamp : lastUpdatedAt,
             source: "CoinGecko + ExchangeRate API (USD→NGN)",
+            trustLevel: "trusted",
           });
         }
       }
@@ -251,7 +259,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
 
       return {
         currency: "NGN",
-        rate: medianRate,
+        rate: weightedRate,
         timestamp: mostRecentTimestamp,
         source: `Median of ${prices.length} sources (outliers filtered)`,
       };

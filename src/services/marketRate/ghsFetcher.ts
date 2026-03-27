@@ -30,7 +30,12 @@ export class GHSRateFetcher implements MarketRateFetcher {
   }
 
   async fetchRate(): Promise<MarketRate> {
-    const prices: { rate: number; timestamp: Date; source: string }[] = [];
+    const prices: {
+      rate: number;
+      timestamp: Date;
+      source: string;
+      trustLevel: SourceTrustLevel;
+    }[] = [];
 
     // Strategy 1: Try CoinGecko direct GHS price
     try {
@@ -58,6 +63,7 @@ export class GHSRateFetcher implements MarketRateFetcher {
           rate: stellarPrice.ghs,
           timestamp: lastUpdatedAt,
           source: "CoinGecko (direct)",
+          trustLevel: "standard",
         });
         
         // Success - reset error tracker
@@ -113,6 +119,7 @@ export class GHSRateFetcher implements MarketRateFetcher {
             timestamp:
               fxTimestamp > lastUpdatedAt ? fxTimestamp : lastUpdatedAt,
             source: "CoinGecko + ExchangeRate API",
+            trustLevel: "trusted",
           });
           
           // Success - reset error tracker
@@ -157,6 +164,7 @@ export class GHSRateFetcher implements MarketRateFetcher {
               rate: xlmUsd * ghsRate,
               timestamp: new Date(),
               source: "Alternative XLM pricing",
+              trustLevel: "new",
             });
             
             // Success - reset error tracker
@@ -180,7 +188,7 @@ export class GHSRateFetcher implements MarketRateFetcher {
 
       return {
         currency: "GHS",
-        rate: medianRate,
+        rate: weightedRate,
         timestamp: mostRecentTimestamp,
         source: `Median of ${prices.length} sources (outliers filtered)`,
       };
