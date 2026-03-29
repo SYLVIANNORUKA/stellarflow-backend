@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the implementation of global retry logic for API fetchers to prevent data gaps when external APIs experience temporary glitches.
+This document describes the implementation of global retry logic for API fetchers to prevent data gaps and when external APIs experience temporary glitches.
 
 ## Issue Reference
 
@@ -39,6 +39,7 @@ A centralized retry utility has been created that provides:
 ### Retryable Conditions
 
 The utility automatically retries requests when:
+
 - Network errors occur (no response received)
 - Server returns retryable status codes:
   - `408` - Request Timeout
@@ -53,21 +54,19 @@ The utility automatically retries requests when:
 ### 1. CoinGecko Fetcher (`src/services/marketRate/coingeckoFetcher.ts`)
 
 ```typescript
-const response = await withRetry(
-  () => axios.get(CoinGeckoFetcher.API_URL),
-  {
-    maxRetries: 3,
-    retryDelay: 1000,
-    onRetry: (attempt, error, delay) => {
-      console.debug(`CoinGecko API retry attempt ${attempt}/3...`);
-    },
-  }
-);
+const response = await withRetry(() => axios.get(CoinGeckoFetcher.API_URL), {
+  maxRetries: 3,
+  retryDelay: 1000,
+  onRetry: (attempt, error, delay) => {
+    console.debug(`CoinGecko API retry attempt ${attempt}/3...`);
+  },
+});
 ```
 
 ### 2. GHS Fetcher (`src/services/marketRate/ghsFetcher.ts`)
 
 All API calls wrapped with retry logic:
+
 - CoinGecko direct GHS price
 - CoinGecko XLM/USD price
 - ExchangeRate API (USD to GHS)
@@ -76,6 +75,7 @@ All API calls wrapped with retry logic:
 ### 3. KES Fetcher (`src/services/marketRate/kesFetcher.ts`)
 
 Replaced custom retry implementation with centralized utility:
+
 - Binance Spot API
 - Binance P2P API
 - Central Bank of Kenya API
@@ -86,6 +86,7 @@ Replaced custom retry implementation with centralized utility:
 ### 4. NGN Fetcher (`src/services/marketRate/ngnFetcher.ts`)
 
 All API calls wrapped with retry logic:
+
 - VTpass API
 - CoinGecko direct NGN price
 - CoinGecko XLM/USD price
@@ -94,6 +95,7 @@ All API calls wrapped with retry logic:
 ### 5. Webhook Service (`src/services/webhook.ts`)
 
 Webhook notifications now retry on failure:
+
 - Error notifications
 - Manual review notifications
 
@@ -102,11 +104,11 @@ Webhook notifications now retry on failure:
 ### Basic Usage
 
 ```typescript
-import { withRetry } from '../utils/retryUtil.js';
+import { withRetry } from "../utils/retryUtil.js";
 
 const response = await withRetry(
-  () => axios.get('https://api.example.com/data'),
-  { maxRetries: 3, retryDelay: 1000 }
+  () => axios.get("https://api.example.com/data"),
+  { maxRetries: 3, retryDelay: 1000 },
 );
 ```
 
@@ -114,7 +116,7 @@ const response = await withRetry(
 
 ```typescript
 const response = await withRetry(
-  () => axios.get('https://api.example.com/data'),
+  () => axios.get("https://api.example.com/data"),
   {
     maxRetries: 5,
     retryDelay: 2000,
@@ -126,22 +128,22 @@ const response = await withRetry(
     onRetry: (attempt, error, delay) => {
       console.log(`Retry ${attempt} after ${delay}ms`);
     },
-  }
+  },
 );
 ```
 
 ### Creating a Retryable Axios Instance
 
 ```typescript
-import { createRetryableAxiosInstance } from '../utils/retryUtil.js';
+import { createRetryableAxiosInstance } from "../utils/retryUtil.js";
 
 const client = createRetryableAxiosInstance(
   { timeout: 5000 },
-  { maxRetries: 3, retryDelay: 1000 }
+  { maxRetries: 3, retryDelay: 1000 },
 );
 
 // All requests automatically retry
-const response = await client.get('https://api.example.com/data');
+const response = await client.get("https://api.example.com/data");
 ```
 
 ## Benefits
@@ -158,6 +160,7 @@ const response = await client.get('https://api.example.com/data');
 The retry logic has been integrated into existing fetchers without breaking changes. All existing tests should continue to pass.
 
 To test retry behavior manually:
+
 1. Temporarily disable an API endpoint
 2. Observe retry attempts in logs
 3. Verify the service recovers when API becomes available
@@ -165,6 +168,7 @@ To test retry behavior manually:
 ## Future Enhancements
 
 Potential improvements for future iterations:
+
 - Add metrics/monitoring for retry attempts
 - Implement adaptive retry delays based on API response headers
 - Add circuit breaker pattern to other fetchers
@@ -175,24 +179,27 @@ Potential improvements for future iterations:
 For adding retry logic to new fetchers:
 
 1. Import the utility:
+
 ```typescript
-import { withRetry } from '../../utils/retryUtil.js';
+import { withRetry } from "../../utils/retryUtil.js";
 ```
 
 2. Wrap axios calls:
+
 ```typescript
-const response = await withRetry(
-  () => axios.get(url, config),
-  { maxRetries: 3, retryDelay: 1000 }
-);
+const response = await withRetry(() => axios.get(url, config), {
+  maxRetries: 3,
+  retryDelay: 1000,
+});
 ```
 
 3. Add custom retry callback (optional):
+
 ```typescript
 {
   onRetry: (attempt, error, delay) => {
     console.debug(`Retry ${attempt}/3 after ${delay}ms`);
-  }
+  };
 }
 ```
 
