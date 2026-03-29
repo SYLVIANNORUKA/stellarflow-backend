@@ -1,4 +1,5 @@
 import axios from "axios";
+import { OUTGOING_HTTP_TIMEOUT_MS } from "../../utils/httpTimeout.js";
 import {
   MarketRateFetcher,
   MarketRate,
@@ -112,7 +113,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
           `${this.vtpassBase()}/service-variations`,
           {
             params: { serviceID: serviceId },
-            timeout: 15000,
+            timeout: OUTGOING_HTTP_TIMEOUT_MS,
             headers: {
               ...headers,
               "User-Agent": "StellarFlow-Oracle/1.0",
@@ -147,7 +148,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
         const coinGeckoResponse = await withRetry(
           () =>
             axios.get<CoinGeckoPriceResponse>(this.coinGeckoUrl, {
-              timeout: 10000,
+              timeout: OUTGOING_HTTP_TIMEOUT_MS,
               headers: {
                 "User-Agent": "StellarFlow-Oracle/1.0",
               },
@@ -178,7 +179,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
       const coinGeckoResponse = await withRetry(
         () =>
           axios.get<CoinGeckoPriceResponse>(this.coinGeckoUrl, {
-            timeout: 10000,
+            timeout: OUTGOING_HTTP_TIMEOUT_MS,
             headers: {
               "User-Agent": "StellarFlow-Oracle/1.0",
             },
@@ -211,7 +212,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
       const coinGeckoResponse = await withRetry(
         () =>
           axios.get<CoinGeckoPriceResponse>(this.coinGeckoUrl, {
-            timeout: 10000,
+            timeout: OUTGOING_HTTP_TIMEOUT_MS,
             headers: {
               "User-Agent": "StellarFlow-Oracle/1.0",
             },
@@ -228,7 +229,7 @@ export class NGNRateFetcher implements MarketRateFetcher {
         const fxResponse = await withRetry(
           () =>
             axios.get<ExchangeRateApiResponse>(this.usdToNgnUrl, {
-              timeout: 10000,
+              timeout: OUTGOING_HTTP_TIMEOUT_MS,
               headers: {
                 "User-Agent": "StellarFlow-Oracle/1.0",
               },
