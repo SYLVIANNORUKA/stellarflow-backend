@@ -1,5 +1,8 @@
 import { MarketRateService } from "../src/services/marketRate";
-import { AggregatedFetcherResponse, MarketRate } from "../src/services/marketRate/types";
+import {
+  AggregatedFetcherResponse,
+  MarketRate,
+} from "../src/services/marketRate/types";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -42,7 +45,10 @@ async function run(): Promise<void> {
   const service = Object.assign(
     Object.create(TestMarketRateService.prototype) as TestMarketRateService & {
       cache: Map<string, unknown>;
-      latestPricesCache: { response: AggregatedFetcherResponse; expiry: Date } | null;
+      latestPricesCache: {
+        response: AggregatedFetcherResponse;
+        expiry: Date;
+      } | null;
       LATEST_PRICES_CACHE_DURATION_MS: number;
     },
     {
@@ -57,7 +63,10 @@ async function run(): Promise<void> {
   const secondResponse = await service.getLatestPrices();
 
   assert(firstResponse.success, "first latest-prices response should succeed");
-  assert(secondResponse.success, "second latest-prices response should succeed");
+  assert(
+    secondResponse.success,
+    "second latest-prices response should succeed",
+  );
   assert(
     service.latestPricesCalls === 1,
     `expected cached latest prices to reuse the first response, got ${service.latestPricesCalls} fetches`,
@@ -69,7 +78,10 @@ async function run(): Promise<void> {
 
   (
     service as unknown as {
-      latestPricesCache: { response: AggregatedFetcherResponse; expiry: Date } | null;
+      latestPricesCache: {
+        response: AggregatedFetcherResponse;
+        expiry: Date;
+      } | null;
     }
   ).latestPricesCache = {
     response: secondResponse,
@@ -88,7 +100,10 @@ async function run(): Promise<void> {
   assert(
     (
       service as unknown as {
-        latestPricesCache: { response: AggregatedFetcherResponse; expiry: Date } | null;
+        latestPricesCache: {
+          response: AggregatedFetcherResponse;
+          expiry: Date;
+        } | null;
       }
     ).latestPricesCache === null,
     "expected clearCache to remove the latest-prices cache entry",

@@ -2,7 +2,8 @@ import axios from "axios";
 import { withRetry } from "../../utils/retryUtil.js";
 
 export class CoinGeckoFetcher {
-  private static readonly API_URL = "https://api.coingecko.com/api/v3/simple/price?ids=stellar&vs_currencies=usd";
+  private static readonly API_URL =
+    "https://api.coingecko.com/api/v3/simple/price?ids=stellar&vs_currencies=usd";
 
   /**
    * Fetches the current XLM/USD price from CoinGecko.
@@ -17,10 +18,10 @@ export class CoinGeckoFetcher {
         retryDelay: 1000,
         onRetry: (attempt, error, delay) => {
           console.debug(
-            `CoinGecko API retry attempt ${attempt}/3 after ${delay}ms. Error: ${error.message}`
+            `CoinGecko API retry attempt ${attempt}/3 after ${delay}ms. Error: ${error.message}`,
           );
         },
-      }
+      },
     );
 
     if (
