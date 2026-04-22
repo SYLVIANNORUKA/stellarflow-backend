@@ -26,6 +26,17 @@ router.post("/multi-sig/request", async (req: Request, res: Response) => {
       });
     }
 
+    // Enforce relayer asset authorization
+    if (req.relayer) {
+      const normalizedCurrency = currency.toUpperCase();
+      if (!req.relayer.allowedAssets.includes(normalizedCurrency)) {
+        return res.status(403).json({
+          success: false,
+          error: `Relayer not authorized for asset: ${normalizedCurrency}`,
+        });
+      }
+    }
+
     const signatureRequest = await multiSigService.createMultiSigRequest(
       priceReviewId,
       currency,
