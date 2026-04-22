@@ -134,6 +134,7 @@ Regenerates documentation on every file change — useful while writing JSDoc co
 > 💎 **Soroban Smart Contracts** | The trustless core of the StellarFlow Oracle.
 
 These smart contracts, written in **Rust**, manage the on-chain verification and storage of Oracle data. Built specifically for the **Soroban** platform on Stellar[cite: 170, 443].
+````
 
 ## 🛡️ Contract Functions
 
@@ -153,7 +154,7 @@ These smart contracts, written in **Rust**, manage the on-chain verification and
 ```bash
 npm run dev
 ```
-````
+
 
 ### Build and Start
 
