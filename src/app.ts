@@ -11,6 +11,7 @@ import intelligenceRouter from "./routes/intelligence";
 import priceUpdatesRouter from "./routes/priceUpdates";
 import assetsRouter from "./routes/assets";
 import statusRouter from "./routes/status";
+import adminRouter from "./routes/admin";
 import derivedAssetsRouter from "./routes/derivedAssets";
 import sanityCheckRouter from "./routes/sanityCheck";
 import cacheMetricsRouter from "./cache/CacheMetrics";
@@ -28,16 +29,13 @@ const dashboardUrl =
   "http://localhost:3000";
 
 app.use(morgan("dev"));
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) {
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
 
-      if (origin === dashboardUrl) {
-        return callback(null, true);
-      }
+      if (origin === dashboardUrl) return callback(null, true);
 
       return callback(
         new Error(
@@ -92,6 +90,7 @@ app.use("/api", rateLimitMiddleware);
 app.use("/api", apiKeyMiddleware);
 app.use("/api/v1", apiKeyMiddleware);
 
+app.use("/api/admin", adminRouter);
 app.use("/api/v1/market-rates", marketRatesRouter);
 app.use("/api/v1/history", historyRouter);
 app.use("/api/v1/stats", statsRouter);
@@ -127,6 +126,10 @@ app.get("/", (req, res) => {
       derivedAssets: {
         crossRate: "/api/v1/derived-assets/rate/:base/:quote",
         ngnGhs: "/api/v1/derived-assets/ngn-ghs",
+      },
+      admin: {
+        lockdown: "POST /api/admin/lockdown",
+        reportSummary: "/api/admin/reports/summary?format=html|pdf&month=YYYY-MM",
       },
     },
   });
